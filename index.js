@@ -548,11 +548,11 @@ async function initApp() {
   }
   const userIcon = document.getElementById('user-profile-icon');
   if (userIcon) {
-    if (currentUser.photo) {
-      userIcon.innerHTML = `<img src="${currentUser.photo}" alt="Profile Photo" class="w-full h-full rounded-full object-cover">`;
-    } else {
-      userIcon.innerHTML = '👤';
-    }
+if (currentUser.photo && currentUser.photo.trim() !== '') {
+  userIcon.innerHTML = `<img src="${currentUser.photo}" alt="Profile Photo" class="w-full h-full rounded-full object-cover">`;
+} else {
+  userIcon.innerHTML = '👤';
+}
   }
   const newAccountBtn = document.querySelector('button[onclick="openNewAccountModal()"]');
   if (newAccountBtn && currentUserRole !== 'admin') {
@@ -1408,6 +1408,7 @@ document.addEventListener('DOMContentLoaded', initApp);
 //   (function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99bbf8eb8072d381',t:'MTc2MjY3NzI4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();
 
 // }
+
 
 
 
