@@ -92,7 +92,8 @@ allUsers = stored && stored !== 'undefined' ? JSON.parse(stored) : [];
         fullName: 'شهاب حمیدی',
         username: 'admin',
         password: 'admin123',
-        role: 'admin'
+        role: 'admin',
+        photo: ''
       };
       allUsers.push(defaultAdmin);
       await saveUsers();
@@ -189,9 +190,26 @@ async function syncUsersWithGoogleSheets() {
   try {
     const result = await callGoogleSheets('readAll', 'accounts');
     if (result.success) {
-      const gsUsers = result.data
+      let gsUsers = result.data
         .map(mapGSToUser)
-        .filter(user => user.__backendId); 
+        .filter(user => user.__backendId);
+
+      const localStoredUsers = localStorage.getItem('userAccountsData');
+      if (localStoredUsers && localStoredUsers !== 'undefined') {
+        try {
+          const localUsers = JSON.parse(localStoredUsers);
+          gsUsers = gsUsers.map(gsUser => {
+            const localUser = local.find(lu => lu.__backendId === gsUser.__backendId);
+            if (localUser && localUser.photo && localUser.photo.trim() !== '') {
+              gsUser.photo = localUser.photo;  // عکس محلی رو برگردون
+            }
+            return gsUser;
+          });
+        } catch (e) {
+          console.warn('خطا در خواندن عکس از localStorage');
+        }
+      }
+
       const defaultAdminExists = gsUsers.some(u => u.username === 'admin');
       if (!defaultAdminExists) {
         const defaultAdmin = {
@@ -199,12 +217,14 @@ async function syncUsersWithGoogleSheets() {
           fullName: 'شهاب حمیدی',
           username: 'admin',
           password: 'admin123',
-          role: 'admin'
+          role: 'admin',
+          photo: ''
         };
         gsUsers.push(defaultAdmin);
       }
+
       allUsers = gsUsers;
-      await saveUsers(allUsers); 
+      await saveUsers(allUsers);
       return true;
     }
     return false;
@@ -1408,6 +1428,7 @@ function toggleUserDropdown() {
 //   (function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99bbf8eb8072d381',t:'MTc2MjY3NzI4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();
 
 // }
+
 
 
 
