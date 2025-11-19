@@ -71,9 +71,6 @@ if (currentUser.tempPhoto) {
   }
 }
 
-// ذخیره در localStorage (برای مواقع آفلاین)
-const userIndex = allUsers.findIndex(u => u.__backendId === currentUser.__backendId);
-if (userIndex !== -1) allUsers[userIndex] = currentUser;
 await saveUsers(allUsers);
   showToast('پروفایل با موفقیت به‌روزرسانی شد', '✅');
   setTimeout(() => navigateTo('./index.html'), 1500);
@@ -148,4 +145,5 @@ async function initProfilePage() {
 }
 
 document.addEventListener('DOMContentLoaded', initProfilePage);
+
 
