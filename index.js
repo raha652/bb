@@ -199,14 +199,16 @@ async function syncUsersWithGoogleSheets() {
         try {
           const localUsers = JSON.parse(localStored);
           gsUsers = gsUsers.map(gsUser => {
-            const localUser = localUsers.find(lu => lu.__backendId === gsUser.__backendId);
-            if (localUser && localUser.photo && localUser.photo.trim() !== '') {
-              gsUser.photo = localUser.photo; // عکس محلی رو نگه دار!
+            // تبدیل __backendId به string برای مقایسه امن
+            const gsId = String(gsUser.__backendId);
+            const localUser = localUsers.find(lu => String(lu.__backendId) === gsId);
+            if (localUser && localUser.photo && typeof localUser.photo === 'string' && localUser.photo.length > 100) {
+              gsUser.photo = localUser.photo; // فقط اگر واقعاً base64 باشه
             }
             return gsUser;
           });
         } catch (e) {
-          console.warn('خطا در خواندن localStorage برای عکس');
+          console.warn('خطا در خواندن localStorage برای عکس پروفایل — ادامه بدون عکس محلی');
         }
       }
       // ==============================================================
@@ -1430,6 +1432,7 @@ document.addEventListener('DOMContentLoaded', initApp);
 //   (function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99bbf8eb8072d381',t:'MTc2MjY3NzI4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();
 
 // }
+
 
 
 
