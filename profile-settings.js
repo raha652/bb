@@ -54,11 +54,27 @@ async function updateProfile(event) {
   }
   currentUser.fullName = fullName;
   currentUser.password = password;
-  if (currentUser.tempPhoto) {
-    currentUser.photo = currentUser.tempPhoto;
-    delete currentUser.tempPhoto;
+if (currentUser.tempPhoto) {
+  currentUser.photo = currentUser.tempPhoto;
+  delete currentUser.tempPhoto;
+
+  // ذخیره عکس در Google Sheets (مهم!)
+  try {
+    const gsData = {
+      __backendId: currentUser.__backendId,
+      photo: currentUser.photo
+    };
+    await callGoogleSheets('update', 'accounts', gsData);
+  } catch (err) {
+    console.error('خطا در ذخیره عکس در Google Sheets', err);
+    showToast('عکس ذخیره شد ولی در سرور ذخیره نشد', '⚠️');
   }
-  await saveUsers(allUsers);
+}
+
+// ذخیره در localStorage (برای مواقع آفلاین)
+const userIndex = allUsers.findIndex(u => u.__backendId === currentUser.__backendId);
+if (userIndex !== -1) allUsers[userIndex] = currentUser;
+await saveUsers(allUsers);
   showToast('پروفایل با موفقیت به‌روزرسانی شد', '✅');
   setTimeout(() => navigateTo('./index.html'), 1500);
 }
@@ -132,3 +148,4 @@ async function initProfilePage() {
 }
 
 document.addEventListener('DOMContentLoaded', initProfilePage);
+
