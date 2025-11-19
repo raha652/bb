@@ -912,18 +912,18 @@ if (activeBtn) activeBtn.classList.add('active-filter');
 }
 function filterMotorcycleStatus(filter) {
   currentStatusFilter = filter;
-
-  // این دو خط حیاتی بودن و قبلاً نبودن!
-  const page = getCurrentPage();
-  if (page === 'motorcycle-status') {
-    updateCurrentPage(); // این خط باعث می‌شه صفحه دوباره رندر بشه
+  if (getCurrentPage() === 'motorcycle-status') {
+    renderMotorcycleStatus(
+      allData.filter(d => d.type === 'motorcycle'),
+      allData.filter(d => d.type === 'request')
+    );
   }
-
-  // همچنین دکمه‌های فیلتر رو فعال/غیرفعال کنیم (برای زیبایی)
   document.querySelectorAll('#filter-all, #filter-available, #filter-pending, #filter-in-use').forEach(btn => {
     btn.classList.remove('active-filter');
   });
-  document.getElementById(`filter-${filter === 'all' ? 'all' : filter}`).classList.add('active-filter');
+  const activeId = filter === 'all' ? 'filter-all' : `filter-${filter}`;
+  const activeBtn = document.getElementById(activeId);
+  if (activeBtn) activeBtn.classList.add('active-filter');
 }
 function filterHistory(completedRequests) {
   if (!completedRequests) {
@@ -1083,39 +1083,53 @@ function selectEmployee(employeeId, employeeText) {
 function populateMotorcycleDropdown() {
   const optionsContainer = document.getElementById('motorcycle-options');
   if (!optionsContainer) return;
+
   const activeRequests = allData.filter(d => d.type === 'request' && (d.status === 'pending' || d.status === 'active'));
   const requestedMotorcycleIds = activeRequests.map(r => r.motorcycleId);
+
   const availableMotorcyclesForRequest = availableMotorcycles.filter(moto =>
     !requestedMotorcycleIds.includes(moto.__backendId)
   );
+
   if (availableMotorcyclesForRequest.length === 0) {
-    optionsContainer.innerHTML = '<div class="p-3 text-gray-500 text-center">هیچ موتور سکیل آزادی در این دیپارتمنت موجود نیست</div>';
+    optionsContainer.innerHTML = '<div class="p-3 text-gray-500 text-center">هیچ موتور سیکل آزادی در این دیپارتمنت موجود نیست</div>';
     return;
   }
+
   optionsContainer.innerHTML = availableMotorcyclesForRequest.map(moto =>
-    `<div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" onclick="selectMotorcycle('${moto.__backendId}', '${moto.motorcycleName} - ${moto.motorcycleColor} - ${moto.motorcycleDepartment}')">${moto.motorcycleName} - ${moto.motorcycleColor} - ${moto.motorcycleDepartment}</div>`
+    `<div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" onclick="selectMotorcycle('${moto.__backendId}', '${moto.motorcycleName} - ${moto.motorcycleColor} - ${moto.motorcycleDepartment}')">
+      ${moto.motorcycleName} - ${moto.motorcycleColor} - ${moto.motorcyclePlate}
+    </div>`
   ).join('');
 }
 function searchMotorcycles() {
   const searchTerm = document.getElementById('motorcycle-search').value.toLowerCase();
+  
   const activeRequests = allData.filter(d => d.type === 'request' && (d.status === 'pending' || d.status === 'active'));
   const requestedMotorcycleIds = activeRequests.map(r => r.motorcycleId);
-  const availableMotorcyclesForRequest = availableMotorcycles.filter(moto =>
-    !requestedMotorcycleIds.includes(moto.__backendId)
-  );
-  const filteredMotorcycles = availableMotorcyclesForRequest.filter(moto =>
-    moto.motorcycleName.toLowerCase().includes(searchTerm) ||
-    moto.motorcycleColor.toLowerCase().includes(searchTerm) ||
-    moto.motorcyclePlate.toLowerCase().includes(searchTerm)
-  );
+
+  let filtered = availableMotorcycles.filter(moto => !requestedMotorcycleIds.includes(moto.__backendId));
+
+  if (searchTerm) {
+    filtered = filtered.filter(moto =>
+      moto.motorcycleName.toLowerCase().includes(searchTerm) ||
+      moto.motorcycleColor.toLowerCase().includes(searchTerm) ||
+      moto.motorcyclePlate.toLowerCase().includes(searchTerm)
+    );
+  }
+
   const optionsContainer = document.getElementById('motorcycle-options');
   if (!optionsContainer) return;
-  if (filteredMotorcycles.length === 0) {
-    optionsContainer.innerHTML = '<div class="p-3 text-gray-500 text-center">هیچ موتور سکیل آزادی یافت نشد</div>';
+
+  if (filtered.length === 0) {
+    optionsContainer.innerHTML = '<div class="p-3 text-gray-500 text-center">هیچ موتور سیکل آزادی یافت نشد</div>';
     return;
   }
-  optionsContainer.innerHTML = filteredMotorcycles.map(moto =>
-    `<div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" onclick="selectMotorcycle('${moto.__backendId}', '${moto.motorcycleName} - ${moto.motorcycleColor} - ${moto.motorcycleDepartment}')">${moto.motorcycleName} - ${moto.motorcycleColor} - ${moto.motorcycleDepartment}</div>`
+
+  optionsContainer.innerHTML = filtered.map(moto =>
+    `<div class="p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" onclick="selectMotorcycle('${moto.__backendId}', '${moto.motorcycleName} - ${moto.motorcycleColor} - ${moto.motorcycleDepartment}')">
+      ${moto.motorcycleName} - ${moto.motorcycleColor} - ${moto.motorcyclePlate}
+    </div>`
   ).join('');
 }
 function toggleMotorcycleDropdown() {
@@ -1448,6 +1462,7 @@ document.addEventListener('DOMContentLoaded', initApp);
 //   (function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99bbf8eb8072d381',t:'MTc2MjY3NzI4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();
 
 // }
+
 
 
 
