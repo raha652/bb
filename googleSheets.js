@@ -194,21 +194,26 @@ async function syncRequestsWithGoogleSheets(allDataRef) {
   }
 }
 
+// تابع mapUserToGS رو پیدا کن و اینجوری تغییر بده (اضافه کردن عکس پروفایل)
 function mapUserToGS(item) {
   return {
     'Unique ID': item.__backendId,
     'نام کامل': item.fullName,
     'نام کاربری': item.username,
     'رمز عبور': item.password,
-    'نقش': item.role
+    'نقش': item.role,
+    'عکس پروفایل': item.photo || ''   // ← این خط جدید اضافه شد
   };
 }
+
+// تابع mapGSToUser رو پیدا کن و اینجوری تغییر بده
 function mapGSToUser(record) {
   return {
     __backendId: record['Unique ID'],
     fullName: record['نام کامل'],
     username: record['نام کاربری'],
     password: record['رمز عبور'],
-    role: record['نقش']
+    role: record['نقش'],
+    photo: record['عکس پروفایل'] || ''   // ← این خط جدید اضافه شد
   };
 }
