@@ -912,18 +912,20 @@ if (activeBtn) activeBtn.classList.add('active-filter');
 }
 function filterMotorcycleStatus(filter) {
   currentStatusFilter = filter;
-  if (getCurrentPage() === 'motorcycle-status') {
-    renderMotorcycleStatus(
-      allData.filter(d => d.type === 'motorcycle'),
-      allData.filter(d => d.type === 'request')
-    );
-  }
+
+  // این خط بسیار مهم است — باعث می‌شود renderMotorcycleStatus دوباره اجرا شود
+  updateCurrentPage();
+
+  // فعال کردن دکمه فیلتر (برای ظاهر)
   document.querySelectorAll('#filter-all, #filter-available, #filter-pending, #filter-in-use').forEach(btn => {
     btn.classList.remove('active-filter');
   });
-  const activeId = filter === 'all' ? 'filter-all' : `filter-${filter}`;
-  const activeBtn = document.getElementById(activeId);
-  if (activeBtn) activeBtn.classList.add('active-filter');
+
+  const activeBtnId = filter === 'all' ? 'filter-all' : `filter-${filter}`;
+  const activeBtn = document.getElementById(activeBtnId);
+  if (activeBtn) {
+    activeBtn.classList.add('active-filter');
+  }
 }
 function filterHistory(completedRequests) {
   if (!completedRequests) {
@@ -1462,6 +1464,7 @@ document.addEventListener('DOMContentLoaded', initApp);
 //   (function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99bbf8eb8072d381',t:'MTc2MjY3NzI4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();
 
 // }
+
 
 
 
