@@ -42,6 +42,7 @@ function previewPhoto(input) {
 
 async function updateProfile(event) {
   event.preventDefault();
+
   const fullName = document.getElementById('profile-fullname').value.trim();
   const newPassword = document.getElementById('profile-password').value;
 
@@ -55,48 +56,46 @@ async function updateProfile(event) {
     return;
   }
 
-  // آپدیت اطلاعات اصلی
+  // آپدیت اطلاعات کاربر
   currentUser.fullName = fullName;
   if (newPassword) currentUser.password = newPassword;
 
-  // آپدیت عکس اگر انتخاب شده
+  // اگر عکس جدید آپلود شده
   if (currentUser.tempPhoto) {
     currentUser.photo = currentUser.tempPhoto;
     delete currentUser.tempPhoto;
-
-    // ذخیره عکس در Google Sheets (مهم!)
-    try {
-      const result = await callGoogleSheets('update', 'accounts', {
-        __backendId: currentUser.__backendId,
-        'عکس پروفایل': currentUser.photo,
-        'نام کامل': currentUser.fullName  // همزمان نام رو هم آپدیت کن
-      });
-
-      if (!result.success) {
-        showToast('عکس در سرور ذخیره نشد', '⚠️');
-      }
-    } catch (err) {
-      console.error('خطا در ارتباط با سرور:', err);
-      showToast('عکس فقط محلی ذخیره شد', '⚠️');
-    }
-  } else {
-    // اگر عکس جدید نیست، حداقل نام و رمز رو در شیت آپدیت کن
-    try {
-      await callGoogleSheets('update', 'accounts', {
-        __backendId: currentUser.__backendId,
-        'نام کامل': fullName
-      });
-    } catch (err) {
-      // اگر نشد، فقط localStorage
-    }
   }
 
-  // آپدیت localStorage (همیشه انجام بشه)
+  // === مهم‌ترین قسمت: آپدیت کامل در Google Sheets ===
+  try {
+    const gsData = {
+      '__backendId': currentUser.__backendId,
+      'نام کامل': currentUser.fullName,
+      'نام کاربری': currentUser.username,
+      'رمز عبور': currentUser.password || '',
+      'نقش': currentUser.role || 'user',
+      'عکس پروفایل': currentUser.photo || ''
+    };
+
+    const result = await callGoogleSheets('update', 'accounts', gsData);
+
+    if (result.success) {
+      console.log('عکس و اطلاعات با موفقیت در Google Sheets ذخیره شد');
+    } else {
+      console.warn('خطا از سرور:', result.error);
+      showToast('تغییرات محلی ذخیره شد ولی در سرور نه', '⚠️');
+    }
+  } catch (err) {
+    console.error('خطا در ارتباط با Google Sheets:', err);
+    showToast('عکس فقط محلی ذخیره شد', '⚠️');
+  }
+
+  // آپدیت localStorage
   const userIndex = allUsers.findIndex(u => u.__backendId === currentUser.__backendId);
   if (userIndex !== -1) allUsers[userIndex] = currentUser;
   await saveUsers(allUsers);
 
-  // آپدیت session برای نمایش فوری در داشبورد
+  // آپدیت session برای نمایش فوری
   let session = JSON.parse(localStorage.getItem('session') || '{}');
   session.fullName = fullName;
   session.photo = currentUser.photo || '';
@@ -177,6 +176,7 @@ if (currentUser.photo && currentUser.photo.trim() !== '') {
 }
 
 document.addEventListener('DOMContentLoaded', initProfilePage);
+
 
 
 
