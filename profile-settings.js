@@ -43,40 +43,66 @@ function previewPhoto(input) {
 async function updateProfile(event) {
   event.preventDefault();
   const fullName = document.getElementById('profile-fullname').value.trim();
-  const password = document.getElementById('profile-password').value;
-  if (!fullName || !password) {
-    showToast('لطفاً همه فیلدها را پر کنید', '⚠️');
+  const newPassword = document.getElementById('profile-password').value;
+
+  if (!fullName) {
+    showToast('نام کامل الزامی است', '⚠️');
     return;
   }
+
   if (!currentUser) {
     showToast('کاربر یافت نشد', '❌');
     return;
   }
-  currentUser.fullName = fullName;
-  currentUser.password = password;
-  
-if (currentUser.tempPhoto) {
-  currentUser.photo = currentUser.tempPhoto;
-  delete currentUser.tempPhoto;
 
-  // ذخیره در Google Sheets فقط اگر تابع وجود داشته باشه
-  if (typeof callGoogleSheets === 'function') {
+  // آپدیت اطلاعات اصلی
+  currentUser.fullName = fullName;
+  if (newPassword) currentUser.password = newPassword;
+
+  // آپدیت عکس اگر انتخاب شده
+  if (currentUser.tempPhoto) {
+    currentUser.photo = currentUser.tempPhoto;
+    delete currentUser.tempPhoto;
+
+    // ذخیره عکس در Google Sheets (مهم!)
+    try {
+      const result = await callGoogleSheets('update', 'accounts', {
+        __backendId: currentUser.__backendId,
+        'عکس پروفایل': currentUser.photo,
+        'نام کامل': currentUser.fullName  // همزمان نام رو هم آپدیت کن
+      });
+
+      if (!result.success) {
+        showToast('عکس در سرور ذخیره نشد', '⚠️');
+      }
+    } catch (err) {
+      console.error('خطا در ارتباط با سرور:', err);
+      showToast('عکس فقط محلی ذخیره شد', '⚠️');
+    }
+  } else {
+    // اگر عکس جدید نیست، حداقل نام و رمز رو در شیت آپدیت کن
     try {
       await callGoogleSheets('update', 'accounts', {
         __backendId: currentUser.__backendId,
-        'عکس پروفایل': currentUser.photo
+        'نام کامل': fullName
       });
     } catch (err) {
-      console.error('خطا در ذخیره عکس در سرور:', err);
-      showToast('عکس ذخیره شد ولی در سرور ذخیره نشد', '⚠️');
+      // اگر نشد، فقط localStorage
     }
-  } else {
-    console.warn('callGoogleSheets موجود نیست — فقط در localStorage ذخیره شد');
   }
-}
 
-await saveUsers(allUsers);
-  showToast('پروفایل با موفقیت به‌روزرسانی شد', '✅');
+  // آپدیت localStorage (همیشه انجام بشه)
+  const userIndex = allUsers.findIndex(u => u.__backendId === currentUser.__backendId);
+  if (userIndex !== -1) allUsers[userIndex] = currentUser;
+  await saveUsers(allUsers);
+
+  // آپدیت session برای نمایش فوری در داشبورد
+  let session = JSON.parse(localStorage.getItem('session') || '{}');
+  session.fullName = fullName;
+  session.photo = currentUser.photo || '';
+  localStorage.setItem('session', JSON.stringify(session));
+
+  showToast('پروفایل با موفقیت به‌روزرسانی شد!', '✅');
   setTimeout(() => navigateTo('./index.html'), 1500);
 }
 
@@ -151,6 +177,7 @@ if (currentUser.photo && currentUser.photo.trim() !== '') {
 }
 
 document.addEventListener('DOMContentLoaded', initProfilePage);
+
 
 
 
