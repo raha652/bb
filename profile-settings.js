@@ -136,14 +136,17 @@ async function initProfilePage() {
   document.getElementById('profile-password').value = currentUser.password || '';
   const preview = document.getElementById('photo-preview');
   const previewImg = document.getElementById('preview-img');
-  if (currentUser.photo) {
-    previewImg.src = currentUser.photo;
-    preview.classList.remove('hidden');
-  }
+if (currentUser.photo && currentUser.photo.trim() !== '') {
+  previewImg.src = currentUser.photo;
+  preview.classList.remove('hidden');
+} else {
+  preview.classList.add('hidden');
+}
   updateDateTime();
   setInterval(updateDateTime, 60000);
 }
 
 document.addEventListener('DOMContentLoaded', initProfilePage);
+
 
 
