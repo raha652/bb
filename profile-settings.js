@@ -54,20 +54,24 @@ async function updateProfile(event) {
   }
   currentUser.fullName = fullName;
   currentUser.password = password;
+  
 if (currentUser.tempPhoto) {
   currentUser.photo = currentUser.tempPhoto;
   delete currentUser.tempPhoto;
 
-  // ذخیره عکس در Google Sheets (مهم!)
-  try {
-    const gsData = {
-      __backendId: currentUser.__backendId,
-      photo: currentUser.photo
-    };
-    await callGoogleSheets('update', 'accounts', gsData);
-  } catch (err) {
-    console.error('خطا در ذخیره عکس در Google Sheets', err);
-    showToast('عکس ذخیره شد ولی در سرور ذخیره نشد', '⚠️');
+  // ذخیره در Google Sheets فقط اگر تابع وجود داشته باشه
+  if (typeof callGoogleSheets === 'function') {
+    try {
+      await callGoogleSheets('update', 'accounts', {
+        __backendId: currentUser.__backendId,
+        'عکس پروفایل': currentUser.photo
+      });
+    } catch (err) {
+      console.error('خطا در ذخیره عکس در سرور:', err);
+      showToast('عکس ذخیره شد ولی در سرور ذخیره نشد', '⚠️');
+    }
+  } else {
+    console.warn('callGoogleSheets موجود نیست — فقط در localStorage ذخیره شد');
   }
 }
 
@@ -147,6 +151,7 @@ if (currentUser.photo && currentUser.photo.trim() !== '') {
 }
 
 document.addEventListener('DOMContentLoaded', initProfilePage);
+
 
 
 
