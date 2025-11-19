@@ -73,7 +73,7 @@ async function updateProfile(event) {
       'نام کامل': currentUser.fullName,
       'نام کاربری': currentUser.username,
       'رمز عبور': currentUser.password || '',
-      'نقش': currentUser.role || 'user',
+      'نقش': currentUser.role || '',
       'عکس پروفایل': currentUser.photo || ''
     };
 
@@ -176,6 +176,7 @@ if (currentUser.photo && currentUser.photo.trim() !== '') {
 }
 
 document.addEventListener('DOMContentLoaded', initProfilePage);
+
 
 
 
